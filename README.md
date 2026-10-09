@@ -1,8 +1,10 @@
 # jabfy-guard
 
 Small, deterministic Python library for authorizing home commands. The AI proposes;
-Guard evaluates; the Bus executes. **This repository does not yet change the Core,
-Bus or simulator.** An `allow` decision is data, not an execution token.
+Guard evaluates; the Bus executes. **The V0.0.1 virtual-home stack integrates this
+library through the simulator's trusted adapter and the Bus admission hook.** An
+`allow` decision is data, not an execution token. Standalone legacy Bus paths do not
+automatically use Guard.
 
 ## Install and test
 
@@ -68,12 +70,14 @@ print(decision.model_dump())
 - Policy parameters add bounds/choices to device constraints. An optional absent
   parameter satisfies its constraint; a required absent parameter does not.
 - Types are strict: `true`, `1`, `1.0` and `"1"` are not interchangeable integers.
-  Only finite scalar values are supported, not nested parameter objects or scripts.
+  Finite scalars and one-level objects of scalars (e.g. bounded RGB) are supported.
+  Object properties are an exact allowlist; deeper objects, arrays and scripts are rejected.
 - Invalid configuration raises on loading: stop startup, do not substitute permissive
   defaults. Invalid evaluation inputs return a denial.
-- Unknown domain/action is critical risk. High/critical actions are blocked in V1,
-  even with an allow rule. This includes thermostat changes and locks. There is no
-  human-confirmation bypass yet.
+- Unknown domain/action is critical risk and always blocked. High-risk actions remain
+  blocked for physical devices. For virtual homes only, trusted context `simulation=true`
+  and explicit `allow_sensitive_simulation=true` on every scoped allow rule permit them.
+  Neither flag can be supplied in a command. There is no human-confirmation bypass.
 - Restricted mode blocks all commands, including reads. Administrative recovery
   must use a separate, authenticated control path, not a device command.
 

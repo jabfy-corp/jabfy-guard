@@ -1,9 +1,11 @@
 """Bounded scalar parameter validation: no coercion, remote schemas or scripts."""
 
-from .models import Parameter, Scalar
+from .models import Parameter, ParameterValue
 
 
-def matches_parameter(value: Scalar, rule: Parameter) -> bool:
+def matches_parameter(value: ParameterValue, rule: Parameter) -> bool:
+    if rule.type == "object":
+        return type(value) is dict and valid_parameters(value, rule.properties, exact=True)
     types = {"boolean": (bool,), "integer": (int,), "number": (int, float,), "string": (str,)}
     if type(value) not in types[rule.type]:
         return False
@@ -18,7 +20,7 @@ def matches_parameter(value: Scalar, rule: Parameter) -> bool:
     return True
 
 
-def valid_parameters(params: dict[str, Scalar], rules: dict[str, Parameter], *, exact: bool) -> bool:
+def valid_parameters(params: dict[str, ParameterValue], rules: dict[str, Parameter], *, exact: bool) -> bool:
     if exact and params.keys() - rules.keys():
         return False
     return all(

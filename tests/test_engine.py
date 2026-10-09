@@ -43,6 +43,7 @@ def test_missing_or_extra_parameters(inputs, params):
 
 
 @pytest.mark.parametrize("field,value", [("approved", True), ("actor_id", "admin"),
+                                           ("simulation", True), ("allow_sensitive_simulation", True),
                                            ("trust_level", "internal"), ("confirmed", True)])
 def test_client_cannot_supply_authority(inputs, field, value):
     inputs[0][field] = value

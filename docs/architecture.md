@@ -37,7 +37,14 @@ Deny rules can be conditional on parameters. Their scope must match before their
 parameter conditions are considered. Allow constraints are cumulative across scoped
 rules: this intentionally favors refusal over alternative permissive grants.
 
-## Future Bus integration (not implemented here)
+## Bus integration contract
+
+V0.0.1 implements this path for virtual homes: `sim.dashboard.guard.HomeGuard`
+builds trusted contracts and is installed as the Bus verification authorizer.
+The executor consumes a one-use admission bound to the exact approved payload.
+This is an in-process boundary, not protection against compromised Python code.
+Physical-device integration remains separate. High-risk simulation exceptions require
+both trusted simulation context and explicit policy permission; critical risk is never exempt.
 
 1. Keep the existing BusMessage wire contract. A Bus-owned adapter maps logical
    home/device/action/parameters into Guard contracts, with explicit tested ID mappings.
@@ -69,6 +76,6 @@ Single-command decisions do not guarantee a batch executes atomically. Hardware 
 after approval; physical effects cannot generally be rolled back.
 
 There is no persistent audit in this package: reuse the Bus audit instead of creating
-a competing journal. Until that integration exists, this package alone does not protect
-the currently running simulator or real hardware. Automated tests are not a production
+a competing journal. The integrated virtual-home stack uses that journal, but this
+package alone does not protect real hardware. Automated tests are not a production
 security certification. A compromised host process can bypass a Python library.

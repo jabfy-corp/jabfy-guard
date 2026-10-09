@@ -59,9 +59,12 @@ def evaluate(command: Command | dict, context: Context | dict, policies: PolicyS
               valid_parameters(command.params, rule.parameters, exact=False)]
     if denied:
         return deny("EXPLICIT_DENY", "An explicit deny rule applies.", policy_ids=denied, **details)
-    if risk in {"high", "critical"}:
-        return deny("SENSITIVE_ACTION_BLOCKED", "V1 does not authorize sensitive actions.", **details)
     allowed = [rule for rule in scoped if rule.effect == "allow"]
+    simulation_permission = context.simulation and allowed and all(
+        rule.allow_sensitive_simulation for rule in allowed
+    )
+    if risk == "critical" or (risk == "high" and not simulation_permission):
+        return deny("SENSITIVE_ACTION_BLOCKED", "Sensitive actions require an explicit virtual-home policy.", **details)
     if not allowed:
         return deny("NO_MATCHING_POLICY", "No explicit permission for this actor and command.", **details)
     details["policy_ids"] = [rule.id for rule in allowed]

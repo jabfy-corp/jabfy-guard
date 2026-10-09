@@ -14,7 +14,7 @@ from jabfy_guard.validation import matches_parameter, valid_parameters
     {"type": "integer", "choices": []},
     {"type": "integer", "choices": [2], "maximum": 1},
     {"type": "number", "maximum": float("inf")},
-    {"type": "object"},
+    {"type": "object", "properties": {"nested": {"type": "object"}}},
     {"type": "string", "$ref": "https://example.com/schema"},
 ])
 def test_invalid_parameter_definitions(data):

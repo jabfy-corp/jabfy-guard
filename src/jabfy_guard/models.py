@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, model_validator
 
 Scalar = str | bool | int | FiniteFloat
+ParameterValue = Scalar | dict[str, Scalar]
 Risk = Literal["low", "medium", "high", "critical"]
 
 
@@ -13,7 +14,8 @@ class Model(BaseModel):
 
 
 class Parameter(Model):
-    type: Literal["boolean", "integer", "number", "string"]
+    type: Literal["boolean", "integer", "number", "string", "object"]
+    properties: dict[str, "Parameter"] = Field(default_factory=dict)
     required: bool = True
     minimum: FiniteFloat | None = None
     maximum: FiniteFloat | None = None
@@ -21,6 +23,12 @@ class Parameter(Model):
 
     @model_validator(mode="after")
     def valid_constraints(self):
+        if self.type != "object" and self.properties:
+            raise ValueError("Properties require an object parameter")
+        if self.type == "object" and (self.choices is not None or any(
+            child.type == "object" for child in self.properties.values()
+        )):
+            raise ValueError("Objects support scalar properties only, without choices")
         if self.type not in {"integer", "number"} and (
             self.minimum is not None or self.maximum is not None
         ):
@@ -52,10 +60,12 @@ class Command(Model):
     home_id: str = Field(min_length=1)
     device_id: str = Field(min_length=1)
     action: str = Field(min_length=1)
-    params: dict[str, Scalar] = Field(default_factory=dict)
+    params: dict[str, ParameterValue] = Field(default_factory=dict)
 
 
 class Context(Model):
+    # Server-owned context only; never accept this flag from a command/request.
+    simulation: bool = False
     home_id: str = Field(min_length=1)
     actor_id: str = Field(min_length=1)
     roles: list[str] = Field(min_length=1)
@@ -74,6 +84,7 @@ class Context(Model):
 
 
 class Policy(Model):
+    allow_sensitive_simulation: bool = False
     id: str = Field(min_length=1)
     effect: Literal["allow", "deny"]
     home_id: str = Field(min_length=1)
