@@ -1,0 +1,13 @@
+{
+  "version": "home-demo-v1",
+  "rules": [{
+    "id": "resident-living-room-light",
+    "effect": "allow",
+    "home_id": "home-demo",
+    "roles": ["resident"],
+    "devices": ["living-room-light"],
+    "actions": ["set_brightness"],
+    "parameters": {"brightness": {"type": "integer", "minimum": 0, "maximum": 100}},
+    "max_per_minute": 10
+  }]
+}
